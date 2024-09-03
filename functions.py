@@ -5,36 +5,36 @@ def load_data(url):
     """Load the dataset from the specified URL."""
     return pd.read_excel(url)
 
-def clean_data(df):
+def clean_data(df_sa):
     """Clean and format the DataFrame."""
     # Handling null values
-    df['Activity'] = df['Activity'].astype(str).fillna('Unknown Activity')
-    df['Date'] = df['Date'].astype(str).fillna('Unknown Date')
+    df_sa['Activity'] = df_sa['Activity'].astype(str).fillna('Unknown Activity')
+    df_sa['Date'] = df_sa['Date'].astype(str).fillna('Unknown Date')
 
     # Removing duplicates
-    df.drop_duplicates(inplace=True)
+    df_sa.drop_duplicates(inplace=True)
 
     # Manipulating strings using Regex
-    df['Activity'] = df['Activity'].apply(lambda x: re.sub(r'[^a-zA-Z\s]', '', str(x)))
+    df_sa['Activity'] = df_sa['Activity'].apply(lambda x: re.sub(r'[^a-zA-Z\s]', '', str(x)))
 
     # Formatting data
-    df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
+    df_sa = df_sa.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
 
     # Handling date fields
-    if 'Date' in df.columns:
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    if 'Date' in df_sa.columns:
+        df_sa['Date'] = pd.to_datetime(df_sa['Date'], errors='coerce')
 
     # Renaming columns
-    df.rename(columns={
+    df_sa.rename(columns={
         'Activity': 'Activity Description',
         'Date': 'Incident Date'
     }, inplace=True)
 
-    return df
+    return df_sa
 
-def style_table(df):
+def style_table(df_sa):
     """Apply styling to the DataFrame."""
-    styled_df = df.style.set_properties(**{
+    styled_df = df_sa.style.set_properties(**{
         'background-color': 'white',
         'color': 'black',
         'border-color': 'black',
