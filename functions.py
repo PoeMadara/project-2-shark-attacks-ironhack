@@ -43,30 +43,30 @@ def clean_str_punctuation(df):
 
 # BEA
 
-def convert_decade(value):
+def convert_decade(df):
     import re
-    if isinstance(value, str):
-        match = re.match(r"(\d+)s", value)
+    if isinstance(df, str):
+        match = re.match(r"(\d+)s", df)
         if match:
             return int(match.group(1))
-    return value
+    return df
 
 
-def convert_range(value):
+def convert_range(df):
     import re
-    if isinstance(value, str):
-        match = re.match(r"(\d+)\s*(or|\/)\s*(\d+)", value)
+    if isinstance(df, str):
+        match = re.match(r"(\d+)\s*(or|\/)\s*(\d+)", df)
         if match:
             num1 = int(match.group(1))
             num2 = int(match.group(3))
             return (num1 + num2) / 2  
-    return value
+    return df
 
 
 # CARLOS
 
 def clean_fatal_column(df):
-    df = df.str.strip().str.upper().replace({
+    df["fatal"] = df["fatal"].str.strip().str.upper().replace({
         'Y': 'Yes',
         'N': 'No',
         'F': 'Yes',
@@ -76,7 +76,7 @@ def clean_fatal_column(df):
         'NQ': 'Unknown',  # Assuming 'NQ' means 'Unknown'
         'Y X 2': 'Yes'  # Assuming 'Y X 2' means 'Yes'
     })
-    df['Fatal'] = df['Fatal'].fillna('Unknown')
+    df['fatal'] = df['fatal'].fillna('Unknown')
     return df
 
 
@@ -121,7 +121,7 @@ def standardize_time(time_str):
     
 
 def clean_time_column(df):
-    df = df.apply(standardize_time)
+    df["time"] = df["time"].apply(standardize_time)
     return df
 
 # valid_species = {
@@ -129,7 +129,9 @@ def clean_time_column(df):
 #     'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
 # }
 
+
 def clean_species(species_str, valid_species):
+
     if pd.isna(species_str):
         return 'Unknown'
     species_str = str(species_str).strip()
@@ -138,9 +140,6 @@ def clean_species(species_str, valid_species):
         if name.lower() in species_str.lower():
             return name
     return 'Unknown'  # Default value if no valid species name is found
-
-
-# df['Species'] = df['Species'].apply(clean_species)
 
 
 def clean_pdf(pdf_str):
@@ -169,6 +168,7 @@ def fix_original_order(df):
 
 def main_cleaning(df_main):
 
+    
     df_main = rename_cols(df_main)
 
     df_main = remove_duplicates(df_main)
@@ -181,14 +181,15 @@ def main_cleaning(df_main):
     df_main = clean_str_punctuation(df_main)
     df_main = clean_str_punctuation(df_main)
     
-    # df_main = clean_fatal_column(df_main, 'fatal')
-    # df_main = clean_time_column(df_main, 'time')
+    df_main = clean_fatal_column(df_main)
+    df_main = clean_time_column(df_main)
     
-    # valid_species = {
-    #     'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
-    #     'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
-    # }
-    # df_main['species'] = df_main['species'].apply(clean_species, valid_species=valid_species)
+    valid_species = {
+        'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
+        'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
+    }
+
+    df_main = df_main.apply(clean_species(valid_species))
     
     # df_main = clean_pdf_column(df_main, 'pdf')
     # df_main = fix_original_order(df_main, 'original_order')
