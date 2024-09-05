@@ -1,14 +1,16 @@
 import pandas as pd
 
 def rename_cols(df):        # Lo usé para nombres de cols
-    
+
+    df.rename(columns={"Unnamed: 11" : "fatal", "Species " : "species"}, inplace=True)
     df.rename(columns= lambda x : x.lower().replace(" ", "_"), inplace=True)
+    
     return df
 
 
 def remove_duplicates(df):
 
-    df = df.dropna(subset=['country','name', 'sex', 'age', 'injury'])
+    df = df.dropna(subset=['country','name', 'sex', 'age', 'fatal'])
     return df
 
 
@@ -21,17 +23,22 @@ def remove_small_reps(df):
     for x in df.columns:
         if df[x].dtype == "str":
             df[x] = df[x].str.strip()
-        df[x] = df[x].loc[df[x].isin(df[x].value_counts()[lambda x: x >= 30].index)]
+            df[x] = df[x].loc[df[x].isin(df[x].value_counts()[lambda x: x >= 30].index)]
+        
     return df
 
 
-def clean_str_punctuation(df):      # Lo use en country, state y location
+def clean_str_punctuation(df):
+
     mytable = str.maketrans('', '', '¡¿.,!?;')
-    
     for x in df.columns:
-        if df[x].dtype == "str":
-            df = df.str.strip().str.title().str.translate(mytable)
+        if df[x].dtype == "object":
+            df[x] = df[x].str.strip().str.title().str.translate(mytable)
+    df_clean = df.select_dtypes(include=['object'])
+    df_clean = df_clean.apply(lambda x: x.str.strip().str.title().str.translate(mytable))
+    df = df.drop(df_clean.columns, axis=1).join(df_clean)
     return df
+
 
 
 # BEA
@@ -54,12 +61,6 @@ def convert_range(value):
             num2 = int(match.group(3))
             return (num1 + num2) / 2  
     return value
-
-
-def fatal_injuries_renamed_FATAL(df):
-
-    df = df.apply(lambda x: 'FATAL' if 'FATAL' in str(x).upper() else x)
-    return df
 
 
 # CARLOS
@@ -180,7 +181,6 @@ def main_cleaning(df_main):
     df_main = clean_str_punctuation(df_main)
     df_main = clean_str_punctuation(df_main)
     
-    # df_main = fatal_injuries_renamed_FATAL(df_main, 'injury')
     # df_main = clean_fatal_column(df_main, 'fatal')
     # df_main = clean_time_column(df_main, 'time')
     
