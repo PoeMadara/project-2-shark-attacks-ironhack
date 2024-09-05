@@ -12,23 +12,25 @@ def remove_duplicates(df):
     return df
 
 
-def fill_NA(df):        # Lo usé para year
-    
-    df.fillna(0).astype(int)
+def change_float_to_int(df):        # Lo usé para year
+    df = df.apply(lambda x: x.fillna(0).astype(int) if x.dtype == 'float64' else x)
     return df
 
 
-def remove_small_reps(df):    # Lo usé despues de df_sa["type"] = df_sa["type"].str.strip() para Type
-
-    df = df.str.strip()
-    df = df.loc[df.isin(df.value_counts()[lambda x: x >= 30].index)]    
+def remove_small_reps(df):
+    for x in df.columns:
+        if df[x].dtype == "str":
+            df[x] = df[x].str.strip()
+        df[x] = df[x].loc[df[x].isin(df[x].value_counts()[lambda x: x >= 30].index)]
     return df
 
 
 def clean_str_punctuation(df):      # Lo use en country, state y location
     mytable = str.maketrans('', '', '¡¿.,!?;')
+    
+    for x in df.columns:
 
-    df = df.str.strip().str.title().str.translate(mytable)
+        df = df.str.strip().str.title().str.translate(mytable)
 
     return df
 
@@ -169,4 +171,28 @@ def main_cleaning(df_main):
 
     df_main = rename_cols(df_main)
 
-    df_main = remove_duplicates
+    df_main = remove_duplicates(df_main)
+
+    df_main = change_float_to_int(df_main)
+    
+    df_main = remove_small_reps(df_main)
+
+    df_main = clean_str_punctuation(df_main)
+    df_main = clean_str_punctuation(df_main)
+    df_main = clean_str_punctuation(df_main)
+    
+    # df_main = fatal_injuries_renamed_FATAL(df_main, 'injury')
+    # df_main = clean_fatal_column(df_main, 'fatal')
+    # df_main = clean_time_column(df_main, 'time')
+    
+    # valid_species = {
+    #     'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
+    #     'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
+    # }
+    # df_main['species'] = df_main['species'].apply(clean_species, valid_species=valid_species)
+    
+    # df_main = clean_pdf_column(df_main, 'pdf')
+    # df_main = fix_original_order(df_main, 'original_order')
+    
+    return df_main
+
