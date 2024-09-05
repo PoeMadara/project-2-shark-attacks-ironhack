@@ -2,7 +2,7 @@
 
 # Shark Attack Analysis Project
 
-[README (Versión en español)](URL_DEL_README_EN_español)
+[README (Versión en español)](https://github.com/PoeMadara/project-2-shark-attacks-ironhack/blob/main/README%20ES.md))
 
 ## Introduction
 
