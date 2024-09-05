@@ -166,6 +166,16 @@ def fix_original_order(df):
 
 
 def main_cleaning(df_main):
+	
+    """
+	Main data cleaning function.
+
+	Parameters:
+		df_main (pandas DataFrame): The main DataFrame to be cleaned.
+
+	Returns:
+		pandas DataFrame: The cleaned DataFrame.
+	"""
 
     df_main = rename_cols(df_main)
 
