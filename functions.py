@@ -117,38 +117,94 @@ def clean_str_punctuation(df):
 
 
 def clean_age_column(df):
+    """
+    Cleans and standardizes the 'age' column, ensuring that numeric values are handled correctly.
+
+    The 'age' column may contain values in different formats, including additional text or descriptions. 
+    This function extracts only the numeric part and converts the values to a numeric format (float).
+    
+    - Splits the string by spaces and takes the first value (which is usually the age) before any additional text.
+    - Uses `pd.to_numeric` to convert the age to a numeric format. Any value that cannot be converted 
+      (e.g., text) is turned into `NaN`.
+    - Non-convertible or missing values are kept as `NaN` to ensure that the column is suitable for numeric analysis.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame containing the 'age' column to clean.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the 'age' column cleaned and in numeric format.
+    """
     import numpy as np
 
+    # Split the string and take the first part (the age), then convert to numeric.
     df["age"] = df["age"].str.split(" ").str[0].apply(pd.to_numeric, errors="coerce")
+    
+    # Fill non-convertible values with NaN.
     df["age"].fillna(value=np.nan, inplace=True)
     
     return df
 
 
-
 def clean_fatal_column(df):
+    """
+    Cleans and standardizes the 'fatal' column.
+    This function performs the following transformations:
+    
+    1. Removes white spaces and applies uppercase formatting: Removes unnecessary white spaces 
+       and converts all text to uppercase.
+    2. Standardizes the different ways fatality is recorded, converting:
+       - 'Y', 'F', and 'Y X 2' to 'Yes'.
+       - 'N', 'N N' to 'No'.
+       - Ambiguous values such as 'M', 'NQ', and 'UNKNOWN' to 'Unknown'.
+    3. Missing or null values in the column are replaced with 'Unknown'.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame containing the 'fatal' column to clean.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the 'fatal' column cleaned and standardized.
+    """
+    
+    # Clean white spaces, convert to uppercase, and replace specific values
     df["fatal"] = df["fatal"].str.strip().str.upper().replace({
-        'Y': 'Yes',
-        'N': 'No',
-        'F': 'Yes',
-        'N N': 'No',
-        'UNKNOWN': 'Unknown',
-        'M': 'Unknown',  # Assuming 'M' means 'Unknown'
-        'NQ': 'Unknown',  # Assuming 'NQ' means 'Unknown'
-        'Y X 2': 'Yes'  # Assuming 'Y X 2' means 'Yes'
+        'Y': 'Yes',  # Convert 'Y' to 'Yes'
+        'N': 'No',  # Convert 'N' to 'No'
+        'F': 'Yes',  # Convert 'F' to 'Yes' (presumably indicates fatality)
+        'N N': 'No',  # Correct variations of 'No'
+        'UNKNOWN': 'Unknown',  # Standardize 'Unknown'
+        'M': 'Unknown',  # Assume 'M' means 'Unknown'
+        'NQ': 'Unknown',  # Assume 'NQ' means 'Unknown'
+        'Y X 2': 'Yes'  # Assume 'Y X 2' means 'Yes'
     })
+    
+    # Fill missing values with 'Unknown'
     df['fatal'] = df['fatal'].fillna('Unknown')
+    
     return df
 
 
 def standardize_time(time_str):
+    """
+    Standardizes a time string to a 24-hour format.
+
+    Time data can come in a variety of formats, such as 'dawn', 'afternoon', or '6:30 PM'.
+    This function converts all possible formats to a uniform representation in a 24-hour format, 
+    making it easier to analyze the times of the attacks. If the time is not available, 
+    a default value of '12:00' is used.
+
+    Parameters:
+        time_str (str or int): The string representing the time to standardize.
+
+    Returns:
+        str: The standardized time string in a 24-hour format.
+    """
     if pd.isna(time_str):
         return '12:00'
     if isinstance(time_str, int):
         time_str = str(time_str)
     time_str = time_str.strip().lower()
     
-    # Handle various time descriptions
+    # Handle different descriptions of time
     if 'early' in time_str or 'dawn' in time_str or 'before' in time_str:
         return '06:00'
     if 'morning' in time_str:
@@ -162,7 +218,7 @@ def standardize_time(time_str):
     if 'night' in time_str or 'midnight' in time_str:
         return '23:00'
     
-    # Try to parse times in different formats
+    # Attempt to parse different time formats
     try:
         time_str = time_str.replace('h', ':').replace(' ', '')
         if '-' in time_str:
@@ -176,87 +232,187 @@ def standardize_time(time_str):
             return f'{time_str[:2]}:{time_str[2:]}'
         if len(time_str) == 3:
             return f'0{time_str[0]}:{time_str[1:]}'
-        return '12:00'  # Default value if parsing fails
+        return '12:00'  # Default value if conversion fails
     except:
         return '12:00'
     
 
 def clean_time_column(df):
-    df["time"] = df["time"].apply(standardize_time)
+    """
+    Cleans and standardizes the 'time' column in the DataFrame by applying the 'standardize_time' 
+    function to each value.
+
+    The 'time' column may contain data in various formats (such as descriptive text or hours in 
+    different formats). This function ensures that all time values are in a uniform format 
+    (for example, in 24-hour format).
+    
+    It uses the 'standardize_time' function to convert values like 'morning', '6:30 PM', or 'dusk' 
+    into a consistent time format.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame containing the 'time' column to clean.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the 'time' column cleaned and standardized.
+    """
+    df["time"] = df["time"].apply(standardize_time)  # Applies time standardization
     return df
 
 
 valid_species = {
+
     'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
     'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
 }
+"""
+Set of valid shark species for cleaning and normalizing the 'species' column.
+
+This set includes the names of shark species that are considered valid and will be used to 
+compare and normalize the data in the 'species' column. During the cleaning process, values 
+that do not match one of these species will be replaced with 'Unknown' or assigned to the 
+closest species name.
+"""
 
 
 def clean_species(species_str, valid_species):
+    """
+    Cleans and standardizes species names in the 'species' column by comparing with a list of 
+    valid species.
 
+    The function aims to normalize the value of the 'species' column by comparing each value with a 
+    predefined list of valid species. If the value matches (case insensitive) one of the valid 
+    species, the corresponding species name is returned. If no match is found, the value 'Unknown' 
+    is assigned.
+
+    - Strips any leading or trailing whitespace from the string.
+    - If the species is in the list of valid species, the species name is returned.
+    - If there is no match or the value is null, 'Unknown' is assigned.
+
+    Parameters:
+        species_str (str): The species name to clean.
+        valid_species (set): A set of valid species for comparison.
+
+    Returns:
+        str: The cleaned species name, or 'Unknown' if no match is found.
+    """
     if pd.isna(species_str):
         return 'Unknown'
     species_str = str(species_str).strip()
-    # Extract only the main species name
+    # Extract only the main species name if it matches the valid ones
     for name in valid_species:
         if name.lower() in species_str.lower():
             return name
-    return 'Unknown'  # Default value if no valid species name is found
+    return 'Unknown'  # Default value if no match is found
 
 
 def clean_species_column(df, valid_species):
+    """
+    Applies the species cleaning using the 'clean_species' function to ensure all species 
+    are valid and consistent.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame containing the 'species' column.
+        valid_species (set): Set of valid species for cleaning.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the 'species' column cleaned.
+    """
     df['species'] = df['species'].apply(lambda x: clean_species(x, valid_species))
     return df
 
 
 def clean_pdf(pdf_str):
+    """
+    Cleans a string representing a PDF file by removing any non-alphanumeric characters, 
+    except for periods, underscores, and dashes.
+
+    This function ensures that the PDF file names in the DataFrame are cleaned and standardized, 
+    removing special characters that could cause issues. If the value is a number, it converts 
+    it to a string. If the string is empty or invalid, 'Unknown' is assigned.
+
+    Parameters:
+        pdf_str (str or int): The value of the 'pdf' column to clean.
+
+    Returns:
+        str: The cleaned PDF file name or 'Unknown' if the value is invalid.
+    """
     if pd.isna(pdf_str):
         return 'Unknown'
     if isinstance(pdf_str, int):
         pdf_str = str(pdf_str)
     pdf_str = str(pdf_str).strip()
-    # Remove any non-alphanumeric characters except periods, underscores, and dashes
+    # Remove non-alphanumeric characters except periods, underscores, and dashes
     pdf_str = ''.join(c for c in pdf_str if c.isalnum() or c in ['.', '_', '-'])
     return pdf_str if pdf_str else 'Unknown'
 
+
 def clean_pdf_column(df):
+    """
+    Applies the 'clean_pdf' function to the 'pdf' column to clean and standardize the PDF file names.
+
+    Iterates through the 'pdf' column of the DataFrame, cleaning each value to ensure that the file names 
+    are in a proper format for handling.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame containing the 'pdf' column.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the 'pdf' column cleaned.
+    """
     df['pdf'] = df['pdf'].apply(clean_pdf)
     return df
 
 
 def drop_useless_columns(df):
+    """
+    Drops unnecessary or irrelevant columns from the DataFrame.
+
+    In this case, the columns 'original_order', 'unnamed:_21', and 'unnamed:_22' are removed because 
+    they do not provide relevant information for the analysis. This function ensures that the DataFrame 
+    remains clean and contains only useful columns.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame from which the columns will be dropped.
+
+    Returns:
+        pandas.DataFrame: The DataFrame without the unnecessary columns.
+    """
     df = df.drop(["original_order", "unnamed:_21", "unnamed:_22"], axis=1)
     return df
 
 
 def main_cleaning(df_main, valid_species):
+    """
+    Main cleaning function that runs a series of steps to prepare the data for analysis.
 
+    This function applies a series of transformations to the main DataFrame to clean and standardize the data. 
+    It performs the following tasks:
     
-    df_main = rename_cols(df_main)
+    - Renames columns for better readability.
+    - Removes duplicates and missing values in key columns.
+    - Converts numeric columns from floats to integers.
+    - Removes categories with low representation.
+    - Cleans punctuation in various text columns.
+    - Normalizes and cleans values.
+    - Drops unnecessary columns.
 
-    df_main = remove_duplicates(df_main)
+    Parameters:
+        df_main (pandas.DataFrame): The main DataFrame to clean.
+        valid_species (set): Set of valid species for the 'species' column.
 
-    df_main = change_float_to_int(df_main)
-    
-    df_main = remove_small_reps(df_main)
-
-    df_main = clean_str_punctuation(df_main)
-    
-    df_main = clean_str_punctuation(df_main)
-
-    df_main = clean_str_punctuation(df_main)
-
-    df_main = clean_age_column(df_main)
-    
-    df_main = clean_fatal_column(df_main)
-
-    df_main = clean_time_column(df_main)
-    
-    df_main = clean_species_column(df_main, valid_species)
-    
-    df_main = clean_pdf_column(df_main)
-    
-    df_main = drop_useless_columns(df_main)
+    Returns:
+        pandas.DataFrame: The cleaned DataFrame, ready for analysis.
+    """
+    df_main = rename_cols(df_main)  # Rename columns
+    df_main = remove_duplicates(df_main)  # Remove duplicates
+    df_main = change_float_to_int(df_main)  # Convert floats to integers
+    df_main = remove_small_reps(df_main)  # Remove small representations
+    df_main = clean_str_punctuation(df_main)  # Clean punctuation in text
+    df_main = clean_age_column(df_main)  # Clean the age column
+    df_main = clean_fatal_column(df_main)  # Clean the 'fatal' column
+    df_main = clean_time_column(df_main)  # Standardize the time column
+    df_main = clean_species_column(df_main, valid_species)  # Clean the 'species' column
+    df_main = clean_pdf_column(df_main)  # Clean the 'pdf' column
+    df_main = drop_useless_columns(df_main)  # Drop unnecessary columns
     
     return df_main
-
