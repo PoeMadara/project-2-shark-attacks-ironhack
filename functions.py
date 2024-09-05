@@ -29,9 +29,8 @@ def clean_str_punctuation(df):      # Lo use en country, state y location
     mytable = str.maketrans('', '', '¡¿.,!?;')
     
     for x in df.columns:
-
-        df = df.str.strip().str.title().str.translate(mytable)
-
+        if df[x].dtype == "str":
+            df = df.str.strip().str.title().str.translate(mytable)
     return df
 
 
