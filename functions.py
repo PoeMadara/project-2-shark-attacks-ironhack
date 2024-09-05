@@ -1,42 +1,118 @@
 import pandas as pd
 
-def rename_cols(df):        
+def rename_cols(df):
+    """
+    Renames the DataFrame columns to improve clarity and consistency.
+    In this case, the function performs two renaming operations:
 
-    df.rename(columns={"Unnamed: 11" : "fatal", "Species " : "species"}, inplace=True)
-    df.rename(columns= lambda x : x.lower().replace(" ", "_"), inplace=True)
+    1. Renames specific columns, such as 'Unnamed: 11' to 'fatal' and 'Species ' to 'species'. 
+       The 'fatal' column will be our reference point for identifying fatal injuries.
+    
+    2. Converts all column names to lowercase and replaces spaces with underscores.
+       This step standardizes the column names, making it easier to work with them.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame whose columns will be renamed.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with renamed columns.
+    """
+    
+    # Rename specific columns for clarity
+    df.rename(columns={"Unnamed: 11": "fatal", "Species ": "species"}, inplace=True)
+    
+    # Convert the rest of the column names to lowercase and replace spaces with underscores.
+    df.rename(columns=lambda x: x.lower().replace(" ", "_"), inplace=True)
     
     return df
 
 
 def remove_duplicates(df):
+    """
+    Removes rows with missing values in key columns for our analysis and returns the modified DataFrame.
+    This step eliminates rows where data is missing in essential columns such as 'country', 'name', 'sex', 'age',
+    and 'fatal'.
 
+    Parameters:
+        df (pandas.DataFrame): The input DataFrame.
+
+    Returns:
+        pandas.DataFrame: The modified DataFrame, without rows that have missing values in key columns.
+    """
     df = df.dropna(subset=['country','name', 'sex', 'age', 'fatal'])
     return df
 
 
-def change_float_to_int(df):       
+def change_float_to_int(df):
+    """
+    Converts float64 columns to their integer equivalents.
+    Since some numeric columns, such as 'age' or 'year', are stored as floats due to the presence of null values or 
+    decimals, this function converts them to integers as decimals are not relevant. Null values are handled by assigning 
+    them 0 to prevent errors in later calculations.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame to modify.
+
+    Returns:
+        pandas.DataFrame: The modified DataFrame with float64 columns converted to integers.
+    """
     df = df.apply(lambda x: x.fillna(0).astype(int) if x.dtype == 'float64' else x)
     return df
 
 
 def remove_small_reps(df):
+    """
+    Removes small representations from each column, keeping only those that have at least 30 occurrences.
+    This function reviews all columns and focuses on string-type columns.
+    
+    First, it removes unnecessary leading and trailing spaces from strings. Then, 
+    it filters rows in each column, retaining only those that appear at least 30 times in the column.
+    This is useful for removing low-representation values that might skew the analysis.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame to process.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with small representations removed and text formatting corrected.
+    """
     for x in df.columns:
-        if df[x].dtype == "str":
+        if df[x].dtype == "str":  # If the column is of string type, remove leading and trailing spaces.
             df[x] = df[x].str.strip()
-            df[x] = df[x].loc[df[x].isin(df[x].value_counts()[lambda x: x >= 30].index)]
-        
+        # Filter the column to keep only values that appear at least 30 times.
+        df[x] = df[x].loc[df[x].isin(df[x].value_counts()[lambda x: x >= 30].index)]
     return df
 
 
 def clean_str_punctuation(df):
+    """
+    Cleans by removing punctuation, adjusting white spaces, and applying title case to text strings. 
+    This function is used in columns such as 'country', 'state', and 'location'.
 
+    First, a translation table is created to remove common punctuation characters like commas, periods, 
+    exclamation marks, and question marks. Then, the function iterates over each column in the DataFrame, 
+    and if the column is of string type, it performs the transformations.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame to clean.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with formatted text strings and no punctuation.
+    """
+    # Define the punctuation characters to be removed.
     mytable = str.maketrans('', '', '¡¿.,!?;')
+    
+    # Iterate through each column and apply the cleaning only to 'object' type (text) columns.
     for x in df.columns:
-        if df[x].dtype == "object":
+        if df[x].dtype == "object":  # If the column is of string type.
             df[x] = df[x].str.strip().str.title().str.translate(mytable)
+    
+    # Create a subset of string-type columns and apply the same cleaning.
     df_clean = df.select_dtypes(include=['object'])
     df_clean = df_clean.apply(lambda x: x.str.strip().str.title().str.translate(mytable))
+    
+    # Replace the original columns with the cleaned ones.
     df = df.drop(df_clean.columns, axis=1).join(df_clean)
+    
     return df
 
 
