@@ -142,6 +142,11 @@ def clean_species(species_str, valid_species):
     return 'Unknown'  # Default value if no valid species name is found
 
 
+def clean_species_column(df, valid_species):
+    df['species'] = df['species'].apply(lambda x: clean_species(x, valid_species))
+    return df
+
+
 def clean_pdf(pdf_str):
     if pd.isna(pdf_str):
         return 'Unknown'
@@ -152,21 +157,17 @@ def clean_pdf(pdf_str):
     pdf_str = ''.join(c for c in pdf_str if c.isalnum() or c in ['.', '_', '-'])
     return pdf_str if pdf_str else 'Unknown'
 
-
 def clean_pdf_column(df):
-    df = df.apply(clean_pdf)
+    df['pdf'] = df['pdf'].apply(clean_pdf)
     return df
 
 
-# ADRIÁN
-
-def fix_original_order(df):
-    
-    df = df.apply(lambda x: str(x).replace('.0', '')).astype(int)
+def drop_useless_columns(df):
+    df = df.drop(["original_order", "unnamed:_21", "unnamed:_22"], axis=1)
     return df
 
 
-def main_cleaning(df_main):
+def main_cleaning(df_main, valid_species):
 
     
     df_main = rename_cols(df_main)
@@ -184,15 +185,11 @@ def main_cleaning(df_main):
     df_main = clean_fatal_column(df_main)
     df_main = clean_time_column(df_main)
     
-    valid_species = {
-        'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
-        'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
-    }
 
-    df_main = df_main.apply(clean_species(valid_species))
+    df_main = clean_species_column(df_main, valid_species)
     
-    # df_main = clean_pdf_column(df_main, 'pdf')
-    # df_main = fix_original_order(df_main, 'original_order')
+    df_main = clean_pdf_column(df_main)
+    df_main = drop_useless_columns(df_main)
     
     return df_main
 
