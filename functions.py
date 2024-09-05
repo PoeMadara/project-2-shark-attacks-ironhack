@@ -11,6 +11,7 @@ def rename_cols(df):
 def remove_duplicates(df):
 
     df = df.dropna(subset=['country','name', 'sex', 'age', 'fatal'])
+    
     return df
 
 
@@ -20,11 +21,12 @@ def change_float_to_int(df):
 
 
 def remove_small_reps(df):
+    df = df[df["sex"] != "Lli"]
     for x in df.columns:
         if df[x].dtype == "str":
             df[x] = df[x].str.strip()
             df[x] = df[x].loc[df[x].isin(df[x].value_counts()[lambda x: x >= 30].index)]
-        
+    
     return df
 
 
