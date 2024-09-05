@@ -167,17 +167,40 @@ def convert_range(df):
 # CARLOS
 
 def clean_fatal_column(df):
+    """
+    Cleans and standardizes the 'fatal' column.
+    This function performs the following transformations:
+    
+    1. Removes white spaces and applies uppercase formatting: Removes unnecessary white spaces 
+       and converts all text to uppercase.
+    2. Standardizes the different ways fatality is recorded, converting:
+       - 'Y', 'F', and 'Y X 2' to 'Yes'.
+       - 'N', 'N N' to 'No'.
+       - Ambiguous values such as 'M', 'NQ', and 'UNKNOWN' to 'Unknown'.
+    3. Missing or null values in the column are replaced with 'Unknown'.
+
+    Parameters:
+        df (pandas.DataFrame): The DataFrame containing the 'fatal' column to clean.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the 'fatal' column cleaned and standardized.
+    """
+    
+    # Clean white spaces, convert to uppercase, and replace specific values
     df["fatal"] = df["fatal"].str.strip().str.upper().replace({
-        'Y': 'Yes',
-        'N': 'No',
-        'F': 'Yes',
-        'N N': 'No',
-        'UNKNOWN': 'Unknown',
-        'M': 'Unknown',  # Assuming 'M' means 'Unknown'
-        'NQ': 'Unknown',  # Assuming 'NQ' means 'Unknown'
-        'Y X 2': 'Yes'  # Assuming 'Y X 2' means 'Yes'
+        'Y': 'Yes',  # Convert 'Y' to 'Yes'
+        'N': 'No',  # Convert 'N' to 'No'
+        'F': 'Yes',  # Convert 'F' to 'Yes' (presumably indicates fatality)
+        'N N': 'No',  # Correct variations of 'No'
+        'UNKNOWN': 'Unknown',  # Standardize 'Unknown'
+        'M': 'Unknown',  # Assume 'M' means 'Unknown'
+        'NQ': 'Unknown',  # Assume 'NQ' means 'Unknown'
+        'Y X 2': 'Yes'  # Assume 'Y X 2' means 'Yes'
     })
+    
+    # Fill missing values with 'Unknown'
     df['fatal'] = df['fatal'].fillna('Unknown')
+    
     return df
 
 
