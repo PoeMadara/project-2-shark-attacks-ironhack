@@ -1,6 +1,6 @@
 import pandas as pd
 
-def rename_cols(df):        # Lo usé para nombres de cols
+def rename_cols(df):        
 
     df.rename(columns={"Unnamed: 11" : "fatal", "Species " : "species"}, inplace=True)
     df.rename(columns= lambda x : x.lower().replace(" ", "_"), inplace=True)
@@ -14,7 +14,7 @@ def remove_duplicates(df):
     return df
 
 
-def change_float_to_int(df):        # Lo usé para year
+def change_float_to_int(df):       
     df = df.apply(lambda x: x.fillna(0).astype(int) if x.dtype == 'float64' else x)
     return df
 
@@ -40,27 +40,33 @@ def clean_str_punctuation(df):
     return df
 
 
+def clean_age_column(df):
 
-# BEA
-
-def convert_decade(df):
-    import re
-    if isinstance(df, str):
-        match = re.match(r"(\d+)s", df)
-        if match:
-            return int(match.group(1))
+    df["age"] = df["age"].str.split(" ").str[0]
+    
     return df
 
 
-def convert_range(df):
-    import re
-    if isinstance(df, str):
-        match = re.match(r"(\d+)\s*(or|\/)\s*(\d+)", df)
-        if match:
-            num1 = int(match.group(1))
-            num2 = int(match.group(3))
-            return (num1 + num2) / 2  
-    return df
+            
+
+# def convert_decade(df):
+#     import re
+#     if isinstance(df["age"], str):
+#         match = re.match(r"(\d+)s", df)
+#         if match:
+#             return int(match.group(1))
+#     return df
+
+
+# def convert_range(df):
+#     import re
+#     if isinstance(df["age"], str):
+#         match = re.match(r"(\d+)\s*(or|\/)\s*(\d+)", df)
+#         if match:
+#             num1 = int(match.group(1))
+#             num2 = int(match.group(3))
+#             return (num1 + num2) / 2  
+#     return df
 
 
 # CARLOS
@@ -124,10 +130,11 @@ def clean_time_column(df):
     df["time"] = df["time"].apply(standardize_time)
     return df
 
-# valid_species = {
-#     'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
-#     'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
-# }
+
+valid_species = {
+    'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
+    'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
+}
 
 
 def clean_species(species_str, valid_species):
@@ -181,6 +188,8 @@ def main_cleaning(df_main, valid_species):
     df_main = clean_str_punctuation(df_main)
     df_main = clean_str_punctuation(df_main)
     df_main = clean_str_punctuation(df_main)
+
+    df_main = clean_age_column(df_main)
     
     df_main = clean_fatal_column(df_main)
     df_main = clean_time_column(df_main)
