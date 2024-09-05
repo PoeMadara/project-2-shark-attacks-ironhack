@@ -9,7 +9,7 @@ Este proyecto es parte del bootcamp de Ironhack y tiene como objetivo analizar d
 ## Presentación del Proyecto
 
 Puedes ver la presentación del proyecto y del equipo en el siguiente enlace:
-[Presentación del Proyecto](https://www.canva.com/design/DAGP5LoxMfs/yXHovGBPZ90BTR52VyZ6mg/edit)
+[Presentación del Proyecto](https://www.canva.com/design/DAGP5LoxMfs/yXHovGBPZ90BTR52VyZ6mg/edit?utm_content=DAGP5LoxMfs&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ## Equipo
 
