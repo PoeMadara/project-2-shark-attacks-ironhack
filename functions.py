@@ -1,6 +1,6 @@
 import pandas as pd
 
-def rename_cols(df):
+def rename_cols(df):        # Lo usé para nombres de cols
     
     df.rename(columns= lambda x : x.lower().replace(" ", "_"), inplace=True)
     return df
@@ -12,20 +12,20 @@ def remove_duplicates(df):
     return df
 
 
-def fill_NA(df):
+def fill_NA(df):        # Lo usé para year
     
     df.fillna(0).astype(int)
     return df
 
 
-def remove_small_reps(df):
+def remove_small_reps(df):    # Lo usé despues de df_sa["type"] = df_sa["type"].str.strip() para Type
 
     df = df.str.strip()
     df = df.loc[df.isin(df.value_counts()[lambda x: x >= 30].index)]    
     return df
 
 
-def clean_str_punctuation(df):
+def clean_str_punctuation(df):      # Lo use en country, state y location
     mytable = str.maketrans('', '', '¡¿.,!?;')
 
     df = df.str.strip().str.title().str.translate(mytable)
@@ -163,3 +163,10 @@ def fix_original_order(df):
     
     df = df.apply(lambda x: str(x).replace('.0', '')).astype(int)
     return df
+
+
+def main_cleaning(df_main):
+
+    df_main = rename_cols(df_main)
+
+    df_main = remove_duplicates
