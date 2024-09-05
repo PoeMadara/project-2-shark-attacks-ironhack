@@ -41,35 +41,14 @@ def clean_str_punctuation(df):
 
 
 def clean_age_column(df):
+    import numpy as np
 
-    df["age"] = df["age"].str.split(" ").str[0]
+    df["age"] = df["age"].str.split(" ").str[0].apply(pd.to_numeric, errors="coerce")
+    df["age"].fillna(value=np.nan, inplace=True)
     
     return df
 
 
-            
-
-# def convert_decade(df):
-#     import re
-#     if isinstance(df["age"], str):
-#         match = re.match(r"(\d+)s", df)
-#         if match:
-#             return int(match.group(1))
-#     return df
-
-
-# def convert_range(df):
-#     import re
-#     if isinstance(df["age"], str):
-#         match = re.match(r"(\d+)\s*(or|\/)\s*(\d+)", df)
-#         if match:
-#             num1 = int(match.group(1))
-#             num2 = int(match.group(3))
-#             return (num1 + num2) / 2  
-#     return df
-
-
-# CARLOS
 
 def clean_fatal_column(df):
     df["fatal"] = df["fatal"].str.strip().str.upper().replace({
@@ -186,18 +165,21 @@ def main_cleaning(df_main, valid_species):
     df_main = remove_small_reps(df_main)
 
     df_main = clean_str_punctuation(df_main)
+    
     df_main = clean_str_punctuation(df_main)
+
     df_main = clean_str_punctuation(df_main)
 
     df_main = clean_age_column(df_main)
     
     df_main = clean_fatal_column(df_main)
+
     df_main = clean_time_column(df_main)
     
-
     df_main = clean_species_column(df_main, valid_species)
     
     df_main = clean_pdf_column(df_main)
+    
     df_main = drop_useless_columns(df_main)
     
     return df_main
