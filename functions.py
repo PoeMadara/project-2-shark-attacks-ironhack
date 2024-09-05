@@ -30,18 +30,17 @@ def remove_duplicates(df):
     return df
 
 
-def fill_NA(df):
+def change_float_to_int(df):
     """
-    Fill missing values in a DataFrame with 0 and convert the resulting values to integers.
+    Replaces float64 columns in a DataFrame with their integer equivalents.
 
     Parameters:
-        df (pandas.DataFrame): The DataFrame to fill missing values in.
+        df (pandas.DataFrame): The DataFrame to modify.
 
     Returns:
-        pandas.DataFrame: The DataFrame with missing values filled with 0 and converted to integers.
+        pandas.DataFrame: The modified DataFrame with float64 columns converted to integers.
     """
-    
-    df.fillna(0).astype(int)
+    df = df.apply(lambda x: x.fillna(0).astype(int) if x.dtype == 'float64' else x)
     return df
 
 
