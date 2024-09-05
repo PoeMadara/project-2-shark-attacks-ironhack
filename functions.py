@@ -1,32 +1,70 @@
-import subprocess
-import sys
 import pandas as pd
 
-def install(package):
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-    except subprocess.CalledProcessError:
-        print(f"Failed to install {package}. Please install it manually.")
+def rename_cols(df):        # Lo usé para nombres de cols
+    
+    df.rename(columns= lambda x : x.lower().replace(" ", "_"), inplace=True)
+    return df
 
-# Install necessary packages
-install('requests')
-install('openpyxl')  # Ensure openpyxl is installed
 
-import requests
+def remove_duplicates(df):
 
-def download_excel(url, filename):
-    response = requests.get(url)
-    with open(filename, 'wb') as file:
-        file.write(response.content)
+    df = df.dropna(subset=['country','name', 'sex', 'age', 'injury'])
+    return df
 
-def load_excel(filename):
-    return pd.read_excel(filename)
 
-def rename_columns(df):
-    return df.rename(columns={'Unnamed: 11': 'Fatal', 'Species ': 'Species', 'Source': 'Source', 'pdf': 'PDF'})
+def fill_NA(df):        # Lo usé para year
+    
+    df.fillna(0).astype(int)
+    return df
+
+
+def remove_small_reps(df):    # Lo usé despues de df_sa["type"] = df_sa["type"].str.strip() para Type
+
+    df = df.str.strip()
+    df = df.loc[df.isin(df.value_counts()[lambda x: x >= 30].index)]    
+    return df
+
+
+def clean_str_punctuation(df):      # Lo use en country, state y location
+    mytable = str.maketrans('', '', '¡¿.,!?;')
+
+    df = df.str.strip().str.title().str.translate(mytable)
+
+    return df
+
+
+# BEA
+
+def convert_decade(value):
+    import re
+    if isinstance(value, str):
+        match = re.match(r"(\d+)s", value)
+        if match:
+            return int(match.group(1))
+    return value
+
+
+def convert_range(value):
+    import re
+    if isinstance(value, str):
+        match = re.match(r"(\d+)\s*(or|\/)\s*(\d+)", value)
+        if match:
+            num1 = int(match.group(1))
+            num2 = int(match.group(3))
+            return (num1 + num2) / 2  
+    return value
+
+
+def fatal_injuries_renamed_FATAL(df):
+
+    df = df.apply(lambda x: 'FATAL' if 'FATAL' in str(x).upper() else x)
+    return df
+
+
+# CARLOS
 
 def clean_fatal_column(df):
-    df['Fatal'] = df['Fatal'].str.strip().str.upper().replace({
+    df = df.str.strip().str.upper().replace({
         'Y': 'Yes',
         'N': 'No',
         'F': 'Yes',
@@ -38,6 +76,7 @@ def clean_fatal_column(df):
     })
     df['Fatal'] = df['Fatal'].fillna('Unknown')
     return df
+
 
 def standardize_time(time_str):
     if pd.isna(time_str):
@@ -77,17 +116,18 @@ def standardize_time(time_str):
         return '12:00'  # Default value if parsing fails
     except:
         return '12:00'
+    
 
 def clean_time_column(df):
-    df['Time'] = df['Time'].apply(standardize_time)
+    df = df.apply(standardize_time)
     return df
 
-valid_species = {
-    'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
-    'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
-}
+# valid_species = {
+#     'Tiger shark', 'White shark', 'Bull shark', 'Hammerhead shark', 'Great white shark', 
+#     'Mako shark', 'Blacktip shark', 'Reef shark', 'Nurse shark', 'Whale shark', 'Tiger shark'
+# }
 
-def clean_species(species_str):
+def clean_species(species_str, valid_species):
     if pd.isna(species_str):
         return 'Unknown'
     species_str = str(species_str).strip()
@@ -97,13 +137,9 @@ def clean_species(species_str):
             return name
     return 'Unknown'  # Default value if no valid species name is found
 
-def clean_species_column(df):
-    df['Species'] = df['Species'].apply(clean_species)
-    return df
 
-def clean_source_column(df):
-    df['Source'] = df['Source'].str.strip().replace({'UNKNOWN': 'Unknown'})
-    return df
+# df['Species'] = df['Species'].apply(clean_species)
+
 
 def clean_pdf(pdf_str):
     if pd.isna(pdf_str):
@@ -115,9 +151,22 @@ def clean_pdf(pdf_str):
     pdf_str = ''.join(c for c in pdf_str if c.isalnum() or c in ['.', '_', '-'])
     return pdf_str if pdf_str else 'Unknown'
 
+
 def clean_pdf_column(df):
-    df['PDF'] = df['PDF'].apply(clean_pdf)
+    df = df.apply(clean_pdf)
     return df
 
-def save_excel(df, filename):
-    df.to_excel(filename, index=False)
+
+# ADRIÁN
+
+def fix_original_order(df):
+    
+    df = df.apply(lambda x: str(x).replace('.0', '')).astype(int)
+    return df
+
+
+def main_cleaning(df_main):
+
+    df_main = rename_cols(df_main)
+
+    df_main = remove_duplicates
