@@ -41,8 +41,10 @@ def clean_str_punctuation(df):
 
 
 def clean_age_column(df):
+    import numpy as np
 
-    df["age"] = df["age"].str.split(" ").str[0]
+    df["age"] = df["age"].str.split(" ").str[0].apply(pd.to_numeric, errors="coerce")
+    df["age"].fillna(value=np.nan, inplace=True)
     
     return df
 
