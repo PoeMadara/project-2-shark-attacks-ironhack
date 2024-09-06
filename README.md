@@ -9,7 +9,7 @@ This project is part of the Ironhack bootcamp and aims to analyze shark attack d
 ## Project Presentation
 
 You can view the project and team presentation at the following link:
-[Project Presentation](https://www.canva.com/design/DAGP5LoxMfs/yXHovGBPZ90BTR52VyZ6mg/edit?utm_content=DAGP5LoxMfs&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+[Project Presentation](https://www.canva.com/design/DAGP5LoxMfs/xbVhpn_nQ5BbFQZH0bksaQ/view?utm_content=DAGP5LoxMfs&utm_campaign=designshare&utm_medium=link&utm_source=editor)
 
 ## Team
 
